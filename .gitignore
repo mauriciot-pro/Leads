@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+.env
+clientdb-app-*.json
+.DS_Store
