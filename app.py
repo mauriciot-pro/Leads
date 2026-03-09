@@ -12,27 +12,29 @@ def fetch_leads():
     raw_data = get_all_leads()
     leads = []
     # Parse the raw sheet data into a JSON structure the frontend expects
-    for row in raw_data:
-        # Only parse rows that have our new schema structure (at least an ID)
-        if len(row) >= 9:
-            try:
-                # Ensure it looks like our generated timestamp ID
-                int(row[0])
-                leads.append({
-                    "id": row[0],
-                    "full_name": row[1],
-                    "first_name": "", # Legacy support
-                    "last_name": "", # Legacy support
-                    "phone_number": "", # Legacy Support
-                    "report_date": row[4],
-                    "reported_by": row[5],
-                    "status_update": row[6],
-                    "comments": row[7] if len(row) > 7 else "",
-                    "created_at": row[8] if len(row) > 8 else ""
-                })
-            except ValueError:
-                # Skip header rows or old unstructured data for the dashboard parsing
-                pass
+    for i, row in enumerate(raw_data):
+        # We want to send all rows to the 'All Leads' view. 
+        # For the dashboard, the frontend will filter, but the API sends everything.
+        try:
+            # Check if it has our new schema (Lead ID is now at index 6)
+            has_id = len(row) > 6 and str(row[6]).isdigit() and len(str(row[6])) > 10
+            
+            leads.append({
+                "id": row[6] if has_id else f"legacy_{i}",
+                "full_name": row[0] if len(row) > 0 else "",
+                "first_name": row[0] if len(row) > 0 else "", 
+                "last_name": row[1] if len(row) > 1 else "", 
+                "report_date": row[3] if len(row) > 3 else "",
+                "reported_by": row[2] if len(row) > 2 else "",
+                # Legacy rows might not have a status, default to 'Imported Lead'
+                "status_update": row[4] if len(row) > 4 and row[4] else "Imported Lead",
+                "comments": row[5] if len(row) > 5 else "",
+                "created_at": row[7] if len(row) > 7 else "",
+                "is_legacy": not has_id
+            })
+        except Exception as e:
+            print(f"Error parsing row {i}: {e}")
+            pass
                 
     # Sort backwards so newest are at the top
     leads.reverse()
@@ -41,14 +43,15 @@ def fetch_leads():
 @app.route('/api/leads', methods=['POST'])
 def create_lead():
     data = request.json
-    full_name = data.get('full_name')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
     reported_by = data.get('reported_by')
     comments = data.get('comments', '')
 
-    if not all([full_name, reported_by]):
-        return jsonify({"success": False, "error": "Missing required fields (Name or Agent)"}), 400
+    if not all([first_name, last_name, reported_by]):
+        return jsonify({"success": False, "error": "Missing required fields (First Name, Last Name, or Agent)"}), 400
 
-    result = add_lead(full_name, reported_by, comments)
+    result = add_lead(first_name, last_name, reported_by, comments)
     if result.get("success"):
         return jsonify(result), 201
     elif "conflict" in result:

@@ -4,3 +4,4 @@ __pycache__/
 .env
 clientdb-app-*.json
 .DS_Store
+.vercel

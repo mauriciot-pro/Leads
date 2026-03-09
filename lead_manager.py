@@ -8,28 +8,31 @@ def get_all_leads():
     try:
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
-        return result.get('values', [])
+        values = result.get('values', [])
+        return values[1:] if len(values) > 1 else []
     except Exception as e:
         print(f"Error reading from Sheets: {e}")
         return []
 
-def add_lead(full_name, reported_by, comments):
+def add_lead(first_name, last_name, reported_by, comments):
     # Check for duplicates first
     existing_leads = get_all_leads()
     
     conflict = None
-    full_name_lower = full_name.lower().strip()
+    full_name = f"{first_name} {last_name}".strip()
+    full_name_lower = full_name.lower()
     
     for row in existing_leads:
-        if len(row) > 1:
-            # Match against the legacy structure where Col B (Index 1) is presumably the Full Name string
-            # Looking at the original data dump: ['', 'Alejandro Dinner', 'Alejandro', 'Dinner'...]
-            row_full_name = str(row[1]).lower().strip()
+        if len(row) > 0:
+            # Match against the new structure: Col A (0) is Nombre Completo, Col B (1) is Apellido
+            nombre = str(row[0]).strip() if len(row) > 0 else ""
+            apellido = str(row[1]).strip() if len(row) > 1 else ""
+            row_full_name = f"{nombre} {apellido}".strip().lower()
 
             # Check Name Conflict
             if row_full_name == full_name_lower:
-                agent_name = row[5] if len(row) > 5 else "Another Agent"
-                conflict_date = row[4] if len(row) > 4 else "an earlier date"
+                agent_name = row[2] if len(row) > 2 else "Another Agent"
+                conflict_date = row[3] if len(row) > 3 else "an earlier date"
                 conflict = {"agent": agent_name, "date": conflict_date, "type": "Name"}
                 break
     
@@ -44,20 +47,19 @@ def add_lead(full_name, reported_by, comments):
     lead_id = str(int(now.timestamp() * 1000))
     status = "New Registration"
     
-    # New row structure to match legacy:
-    # 0: ID
-    # 1: Full Name string
-    # 2: First Name (we'll leave blank since we no longer collect it separately)
-    # 3: Last Name (we'll leave blank)
-    # 4: Report Date
-    # 5: Reported By
-    # 6: Status
-    # 7: Comments
-    # 8: ISO Timestamp
+    # New row structure:
+    # 0: Nombre Completo (First Name)
+    # 1: Apellido (Last Name)
+    # 2: Reportado por
+    # 3: Fecha de reporte
+    # 4: Status
+    # 5: Comments
+    # 6: Generated Lead ID
+    # 7: ISO Timestamp
     
     new_row = [
-        lead_id, full_name, "", "", report_date, 
-        reported_by, status, comments, iso_timestamp
+        first_name, last_name, reported_by, report_date, 
+        status, comments, lead_id, iso_timestamp
     ]
     
     service = get_sheets_service()
@@ -93,15 +95,15 @@ def update_lead_status(lead_id, new_status):
     row_index = -1
     
     for i, row in enumerate(existing_leads):
-        if len(row) > 0 and row[0] == lead_id:
+        if len(row) > 6 and row[6] == lead_id:
             row_index = i + 1  # Sheets are 1-indexed
             break
             
     if row_index == -1:
         return {"success": False, "error": "Lead not found."}
         
-    # Update just the status column (Col G)
-    update_range = f"Sheet1!G{row_index}"
+    # Update just the status column (Col E)
+    update_range = f"Sheet1!E{row_index}"
     service = get_sheets_service()
     
     try:
