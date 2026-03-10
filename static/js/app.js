@@ -389,11 +389,7 @@ function createCardFromTemplate(template, lead) {
         }
     });
 
-    // Disable updates for legacy rows without strict IDs 
-    if(lead.is_legacy) {
-         select.disabled = true;
-         select.title = "Cannot update status of legacy records from this application.";
-    }
+
 
     return clone;
 }
