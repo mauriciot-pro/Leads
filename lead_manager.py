@@ -90,6 +90,14 @@ def update_lead_status(lead_id, new_status):
             row_index = i + 2  # Fixed index to match Google Sheets (1-indexed + 1 for header)
             break
             
+    # Fallback for legacy leads where ID is "legacy_{rowIndex}"
+    if row_index == -1 and str(lead_id).startswith("legacy_"):
+        try:
+            # Extract the row index directly from the ID
+            row_index = int(str(lead_id).replace("legacy_", ""))
+        except ValueError:
+            pass
+
     if row_index == -1:
         return {"success": False, "error": "Lead not found."}
         

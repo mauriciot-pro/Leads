@@ -311,10 +311,9 @@ function createCardFromTemplate(template, lead) {
         clone.querySelector('.lead-comments').textContent = "-";
     }
 
-    // Status Badge coloring
-    const badge = clone.querySelector('.status-badge');
-    badge.textContent = lead.status_update;
-
+    // Set select value and initial color
+    const select = clone.querySelector('.status-updater');
+    
     // Map status text to classes
     let statusClass = 'status-new';
     if (lead.status_update.includes('Contacted')) statusClass = 'status-contacted';
@@ -327,10 +326,10 @@ function createCardFromTemplate(template, lead) {
     if (lead.status_update.includes('Other')) statusClass = 'status-other';
     if (lead.status_update.includes('Legacy') || lead.status_update.includes('Imported')) statusClass = 'status-legacy';
     
-    badge.classList.add(statusClass);
+    // The select element now acts as the badge as well
+    select.classList.add('status-badge', statusClass);
 
-    // Set select value
-    const select = clone.querySelector('.status-updater');
+
     
     // Add Legacy option if it's currently a legacy string
     if(!Array.from(select.options).some(opt => opt.value === lead.status_update)) {
@@ -356,8 +355,7 @@ function createCardFromTemplate(template, lead) {
             }
 
             // Update badge visually immediately
-            badge.textContent = newStatus;
-            badge.className = 'status-badge'; // reset
+            select.className = 'status-updater status-badge'; // reset
 
             let newClass = 'status-new';
             if (newStatus.includes('Contacted')) newClass = 'status-contacted';
@@ -369,7 +367,7 @@ function createCardFromTemplate(template, lead) {
             if (newStatus.includes('Sold')) newClass = 'status-sold';
             if (newStatus.includes('Other')) newClass = 'status-other';
             if (newStatus.includes('Legacy') || newStatus.includes('Imported')) newClass = 'status-legacy';
-            badge.classList.add(newClass);
+            select.classList.add(newClass);
             
             // Update the data attribute for filtering
             clone.dataset.status = newStatus.toLowerCase();
