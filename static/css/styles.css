@@ -18,11 +18,13 @@
 
     /* Status Colors */
     --status-new: #2e7d32;
-    --status-progress: #f57c00;
-    --status-showing: #1976d2;
-    --status-reserved: #8e24aa;
+    --status-contacted: #1976d2;
+    --status-interesado: #f57c00;
+    --status-undercontract: #8e24aa;
+    --status-reserved: #d81b60;
     --status-sold: #B2A595;
-    --status-lost: #8C999B;
+    --status-nointeresado: #d32f2f;
+    --status-other: #5c5c5c;
     --status-legacy: #5c5c5c;
 
     /* Typography */
@@ -672,12 +674,16 @@ input:disabled {
     background-color: var(--status-new);
 }
 
-.status-progress {
-    background-color: var(--status-progress);
+.status-contacted {
+    background-color: var(--status-contacted);
 }
 
-.status-showing {
-    background-color: var(--status-showing);
+.status-interesado {
+    background-color: var(--status-interesado);
+}
+
+.status-undercontract {
+    background-color: var(--status-undercontract);
 }
 
 .status-reserved {
@@ -689,8 +695,12 @@ input:disabled {
     color: #000;
 }
 
-.status-lost {
-    background-color: var(--status-lost);
+.status-nointeresado {
+    background-color: var(--status-nointeresado);
+}
+
+.status-other {
+    background-color: var(--status-other);
 }
 
 .status-legacy {

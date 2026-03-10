@@ -64,19 +64,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.status === 409 && data.conflict) {
                 // Duplicate Conflict!
-                showToast(`Conflict (${payload.full_name}): This lead was already registered by ${data.conflict.agent} on ${data.conflict.date}.`);
+                window.showToast(`Conflict (${payload.full_name}): This lead was already registered by ${data.conflict.agent} on ${data.conflict.date}.`);
             } else if (response.ok) {
                 // Success
                 leadForm.reset();
-                showToast(`Success: Lead registered successfully.`, false);
+                window.showToast(`Success: Lead registered successfully.`, false);
                 // Navigate back to dashboard automatically
                 document.querySelector('[data-view="dashboard"]').click();
             } else {
-                showToast(`Error: ${data.error || 'Failed to submit.'}`);
+                window.showToast(`Error: ${data.error || 'Failed to submit.'}`);
             }
         } catch (error) {
             console.error("Submission Error:", error);
-            showToast("Networking error occurred. Please try again.");
+            window.showToast("Networking error occurred. Please try again.");
         } finally {
             // Restore UI
             submitBtn.disabled = false;
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Toast Logic
-    function showToast(message, isError = true) {
+    window.showToast = function(message, isError = true) {
         toastMsg.textContent = message;
         toast.style.borderColor = isError ? 'var(--color-accent)' : 'var(--status-new)';
         toast.querySelector('.toast-icon').style.color = isError ? 'var(--color-accent)' : 'var(--status-new)';
@@ -317,12 +317,15 @@ function createCardFromTemplate(template, lead) {
 
     // Map status text to classes
     let statusClass = 'status-new';
-    if (lead.status_update.includes('Progress')) statusClass = 'status-progress';
-    if (lead.status_update.includes('Showing')) statusClass = 'status-showing';
+    if (lead.status_update.includes('Contacted')) statusClass = 'status-contacted';
+    if (lead.status_update.includes('Interesado')) {
+        statusClass = lead.status_update.includes('No') ? 'status-nointeresado' : 'status-interesado';
+    }
+    if (lead.status_update.toLowerCase().includes('contract')) statusClass = 'status-undercontract';
     if (lead.status_update.includes('Reserved')) statusClass = 'status-reserved';
     if (lead.status_update.includes('Sold')) statusClass = 'status-sold';
+    if (lead.status_update.includes('Other')) statusClass = 'status-other';
     if (lead.status_update.includes('Legacy') || lead.status_update.includes('Imported')) statusClass = 'status-legacy';
-    else if (lead.status_update.includes('Lost')) statusClass = 'status-lost';
     
     badge.classList.add(statusClass);
 
@@ -341,30 +344,46 @@ function createCardFromTemplate(template, lead) {
         const newStatus = e.target.value;
         try {
             select.disabled = true;
-            await fetch(`/api/leads/${lead.id}`, {
+            const response = await fetch(`/api/leads/${lead.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to update status');
+            }
 
             // Update badge visually immediately
             badge.textContent = newStatus;
             badge.className = 'status-badge'; // reset
 
             let newClass = 'status-new';
-            if (newStatus.includes('Progress')) newClass = 'status-progress';
-            if (newStatus.includes('Showing')) newClass = 'status-showing';
+            if (newStatus.includes('Contacted')) newClass = 'status-contacted';
+            if (newStatus.includes('Interesado')) {
+                newClass = newStatus.includes('No') ? 'status-nointeresado' : 'status-interesado';
+            }
+            if (newStatus.toLowerCase().includes('contract')) newClass = 'status-undercontract';
             if (newStatus.includes('Reserved')) newClass = 'status-reserved';
             if (newStatus.includes('Sold')) newClass = 'status-sold';
-            if (newStatus.includes('Lost')) newClass = 'status-lost';
+            if (newStatus.includes('Other')) newClass = 'status-other';
             if (newStatus.includes('Legacy') || newStatus.includes('Imported')) newClass = 'status-legacy';
             badge.classList.add(newClass);
             
             // Update the data attribute for filtering
             clone.dataset.status = newStatus.toLowerCase();
 
+            if (window.showToast) {
+                window.showToast(`Status updated to ${newStatus}`, false);
+            }
+
         } catch (error) {
             console.error("Update failed", error);
+            if (window.showToast) {
+                window.showToast(`Error updating status: ${error.message}`, true);
+            }
+            select.value = lead.status_update;
         } finally {
             select.disabled = false;
         }
