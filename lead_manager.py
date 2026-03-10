@@ -24,13 +24,13 @@ def add_lead(first_name, last_name, reported_by, comments):
     
     for row in existing_leads:
         if len(row) > 0:
-            # Match against the new structure: Col A (0) is Nombre Completo, Col B (1) is Apellido
+            # First Name uses Col A (0), Last Name Col B (1)
             nombre = str(row[0]).strip() if len(row) > 0 else ""
             apellido = str(row[1]).strip() if len(row) > 1 else ""
             row_full_name = f"{nombre} {apellido}".strip().lower()
 
             # Check Name Conflict
-            if row_full_name == full_name_lower:
+            if row_full_name and row_full_name == full_name_lower:
                 agent_name = row[2] if len(row) > 2 else "Another Agent"
                 conflict_date = row[3] if len(row) > 3 else "an earlier date"
                 conflict = {"agent": agent_name, "date": conflict_date, "type": "Name"}
@@ -47,16 +47,7 @@ def add_lead(first_name, last_name, reported_by, comments):
     lead_id = str(int(now.timestamp() * 1000))
     status = "New Registration"
     
-    # New row structure:
-    # 0: Nombre Completo (First Name)
-    # 1: Apellido (Last Name)
-    # 2: Reportado por
-    # 3: Fecha de reporte
-    # 4: Status
-    # 5: Comments
-    # 6: Generated Lead ID
-    # 7: ISO Timestamp
-    
+    # Schema: 0:First, 1:Last, 2:Agent, 3:Date, 4:Status, 5:Comment, 6:ID, 7:Time
     new_row = [
         first_name, last_name, reported_by, report_date, 
         status, comments, lead_id, iso_timestamp
@@ -95,8 +86,8 @@ def update_lead_status(lead_id, new_status):
     row_index = -1
     
     for i, row in enumerate(existing_leads):
-        if len(row) > 6 and row[6] == lead_id:
-            row_index = i + 1  # Sheets are 1-indexed
+        if len(row) > 6 and str(row[6]).strip() == str(lead_id).strip():
+            row_index = i + 2  # Fixed index to match Google Sheets (1-indexed + 1 for header)
             break
             
     if row_index == -1:

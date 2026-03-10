@@ -20,6 +20,7 @@
     --status-new: #2e7d32;
     --status-progress: #f57c00;
     --status-showing: #1976d2;
+    --status-reserved: #8e24aa;
     --status-sold: #B2A595;
     --status-lost: #8C999B;
     --status-legacy: #5c5c5c;
@@ -676,6 +677,10 @@ input:disabled {
 
 .status-showing {
     background-color: var(--status-showing);
+}
+
+.status-reserved {
+    background-color: var(--status-reserved);
 }
 
 .status-sold {

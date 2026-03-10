@@ -273,6 +273,7 @@ function createCardFromTemplate(template, lead) {
     let statusClass = 'status-new';
     if (lead.status_update.includes('Progress')) statusClass = 'status-progress';
     if (lead.status_update.includes('Showing')) statusClass = 'status-showing';
+    if (lead.status_update.includes('Reserved')) statusClass = 'status-reserved';
     if (lead.status_update.includes('Sold')) statusClass = 'status-sold';
     if (lead.status_update.includes('Legacy') || lead.status_update.includes('Imported')) statusClass = 'status-legacy';
     else if (lead.status_update.includes('Lost')) statusClass = 'status-lost';
@@ -307,6 +308,7 @@ function createCardFromTemplate(template, lead) {
             let newClass = 'status-new';
             if (newStatus.includes('Progress')) newClass = 'status-progress';
             if (newStatus.includes('Showing')) newClass = 'status-showing';
+            if (newStatus.includes('Reserved')) newClass = 'status-reserved';
             if (newStatus.includes('Sold')) newClass = 'status-sold';
             if (newStatus.includes('Lost')) newClass = 'status-lost';
             if (newStatus.includes('Legacy') || newStatus.includes('Imported')) newClass = 'status-legacy';
@@ -359,7 +361,7 @@ function updateSalesOverview(leads, selectedMonth, selectedAgents) {
 
     // Calculate Stats
     let totalLeads = filteredLeads.length;
-    let newRegistrations = 0;
+    let totalReserved = 0;
     let totalSold = 0;
     
     const agentCounts = {};
@@ -367,65 +369,26 @@ function updateSalesOverview(leads, selectedMonth, selectedAgents) {
     filteredLeads.forEach(lead => {
         // Status counts
         const status = (lead.status_update || '').toLowerCase();
-        if (status.includes('new registration') || status.includes('imported lead')) {
-            newRegistrations++;
+        if (status.includes('reserve')) {
+            totalReserved++;
         }
         if (status.includes('sold')) {
             totalSold++;
-        }
-
-        // Agent Leaderboard tracking
-        const agent = lead.reported_by || 'Unknown Agent';
-        if (agentCounts[agent]) {
-            agentCounts[agent]++;
-        } else {
-            agentCounts[agent] = 1;
         }
     });
 
     // Update DOM for Stats
     const statTotalEl = document.getElementById('stat-total-leads');
-    const statNewEl = document.getElementById('stat-new-registrations');
+    const statReservedEl = document.getElementById('stat-total-reserved');
     const statSoldEl = document.getElementById('stat-total-sold');
     
     if (statTotalEl) statTotalEl.textContent = totalLeads;
-    if (statNewEl) statNewEl.textContent = newRegistrations;
+    if (statReservedEl) statReservedEl.textContent = totalReserved;
     if (statSoldEl) statSoldEl.textContent = totalSold;
 
-    // Build and Sort Leaderboard
-    const sortedAgents = Object.keys(agentCounts).map(agent => ({
-        name: agent,
-        count: agentCounts[agent]
-    })).sort((a, b) => b.count - a.count);
-
-    // Render Leaderboard
-    const leaderboardContainer = document.getElementById('leaderboard-container');
-    if (leaderboardContainer) {
-        leaderboardContainer.innerHTML = '';
-        
-        if (sortedAgents.length === 0) {
-            leaderboardContainer.innerHTML = '<p style="color: var(--color-secondary); padding: 1rem 0;">No leads reported for this period.</p>';
-            return;
-        }
-
-        const template = document.getElementById('leaderboard-item-template');
-        if (template) {
-           sortedAgents.forEach((agentObj, index) => {
-               const clone = Array.from(template.content.cloneNode(true).children)[0];
-               
-               clone.querySelector('.agent-rank').textContent = index + 1;
-               clone.querySelector('.agent-name').textContent = agentObj.name;
-               clone.querySelector('.count-value').textContent = agentObj.count;
-                              if (index === 0) {
-                   const trophy = clone.querySelector('.agent-trophy');
-                   if (trophy) trophy.classList.remove('hidden');
-               }
-
-               leaderboardContainer.appendChild(clone);
-           });
-        }
-    }
+    // Remove leaderboard rendering logic per user request
 }
+
 
 // Client-Side Filtration Logic
 document.addEventListener('DOMContentLoaded', () => {

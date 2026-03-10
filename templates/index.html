@@ -124,15 +124,14 @@
                     </div>
                     
                     <div class="stat-card glass-card">
-                        <div class="stat-icon" style="color: var(--status-new);">
+                        <div class="stat-icon" style="color: var(--status-progress);">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <h3 class="stat-value" id="stat-new-registrations">0</h3>
-                            <p class="stat-label">New Registrations</p>
+                            <h3 class="stat-value" id="stat-total-reserved">0</h3>
+                            <p class="stat-label">Total Reserved</p>
                         </div>
                     </div>
 
@@ -150,13 +149,7 @@
                     </div>
                 </div>
 
-                <!-- Agent Leaderboard -->
-                <div class="leaderboard-section glass-panel">
-                    <h3 class="section-title" style="margin-bottom: 1.5rem; color: var(--color-primary); font-family: var(--font-heading);">Agent Leaderboard</h3>
-                    <div class="leaderboard-list" id="leaderboard-container">
-                        <!-- Leaderboard items injected via JS -->
-                    </div>
-                </div>
+                <!-- Leaderboard removed per user request -->
             </section>
 
             <!-- All Leads View -->
@@ -287,6 +280,7 @@
                     <option value="New Registration">New Registration</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Schedule Showing">Schedule Showing</option>
+                    <option value="Reserved">Reserved</option>
                     <option value="Sold">Sold</option>
                     <option value="Lost">Lost</option>
                 </select>
@@ -307,6 +301,7 @@
                     <option value="New Registration">New Registration</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Schedule Showing">Schedule Showing</option>
+                    <option value="Reserved">Reserved</option>
                     <option value="Sold">Sold</option>
                     <option value="Lost">Lost</option>
                 </select>
@@ -314,17 +309,6 @@
             <td class="lead-comments"></td>
     </template>
 
-    <!-- Template for Leaderboard Items -->
-    <template id="leaderboard-item-template">
-        <div class="leaderboard-item">
-            <div class="agent-rank"></div>
-            <div class="agent-info">
-                <h4 class="agent-name"></h4>
-                <div class="agent-leads-count">
-                    <span class="count-value"></span> leads
-                </div>
-            </div>
-    </template>
 
     <script src="/static/js/app.js"></script>
 </body>

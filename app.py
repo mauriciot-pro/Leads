@@ -16,16 +16,16 @@ def fetch_leads():
         # We want to send all rows to the 'All Leads' view. 
         # For the dashboard, the frontend will filter, but the API sends everything.
         try:
-            # Check if it has our new schema (Lead ID is now at index 6)
+            # Schema: 0:First, 1:Last, 2:Agent, 3:Date, 4:Status, 5:Comment, 6:ID, 7:Time
             has_id = len(row) > 6 and str(row[6]).isdigit() and len(str(row[6])) > 10
             
             leads.append({
                 "id": row[6] if has_id else f"legacy_{i}",
-                "full_name": row[0] if len(row) > 0 else "",
+                "full_name": f"{row[0]} {row[1]}".strip() if len(row) > 1 else (row[0] if len(row) > 0 else ""),
                 "first_name": row[0] if len(row) > 0 else "", 
                 "last_name": row[1] if len(row) > 1 else "", 
-                "report_date": row[3] if len(row) > 3 else "",
                 "reported_by": row[2] if len(row) > 2 else "",
+                "report_date": row[3] if len(row) > 3 else "",
                 # Legacy rows might not have a status, default to 'Imported Lead'
                 "status_update": row[4] if len(row) > 4 and row[4] else "Imported Lead",
                 "comments": row[5] if len(row) > 5 else "",
