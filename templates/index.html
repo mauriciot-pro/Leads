@@ -72,12 +72,19 @@
 
                 <!-- Dashboard Filter Bar -->
                 <div class="filter-bar glass-panel" style="justify-content: flex-start; margin-bottom: 1.5rem;">
-                    <div class="filter-group">
-                        <label for="filter-month">Select Month</label>
-                        <select id="filter-month" class="status-updater" style="width: auto; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: 6px; font-family: 'Roboto', sans-serif;">
-                            <option value="all">All Months</option>
-                            <!-- Options populated by JS -->
-                        </select>
+                    <div class="filter-group custom-select-wrapper">
+                        <label>Select Month(s)</label>
+                        <div class="custom-select-header" id="month-select-header">
+                            <span id="month-select-text">All Months</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </div>
+                        <div class="custom-select-dropdown hidden" id="month-select-dropdown">
+                            <div class="custom-select-options" id="month-options-container">
+                                <!-- Checkbox options populated by JS -->
+                            </div>
+                        </div>
                     </div>
                     <div class="filter-group custom-select-wrapper">
                         <label>Select Agent(s)</label>

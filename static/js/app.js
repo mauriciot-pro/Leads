@@ -163,31 +163,54 @@ function renderLeads(leads, dashboardContainer, allLeadsContainer) {
         }
     });
 
-    // Populate month dropdown
-    const filterMonth = document.getElementById('filter-month');
-    if (filterMonth) {
-        filterMonth.innerHTML = '<option value="all">All Months</option>';
+    // Populate month dropdown (Custom Multi-select)
+    const monthOptionsContainer = document.getElementById('month-options-container');
+    if (monthOptionsContainer) {
+        monthOptionsContainer.innerHTML = '';
+        
+        const allOptionHTML = `
+            <div class="custom-select-option">
+                <input type="checkbox" id="month-opt-all" value="all" checked>
+                <label for="month-opt-all">All Months</label>
+            </div>
+        `;
+        monthOptionsContainer.innerHTML += allOptionHTML;
         
         const sortedKeys = Array.from(uniqueMonthsMap.keys()).sort().reverse();
         let currentYear = null;
-        let optGroup = null;
         
         sortedKeys.forEach(key => {
             const data = uniqueMonthsMap.get(key);
             if (data.year !== currentYear) {
-                if (optGroup) filterMonth.appendChild(optGroup);
                 currentYear = data.year;
-                optGroup = document.createElement('optgroup');
-                optGroup.label = currentYear;
+                const yearHeader = document.createElement('div');
+                yearHeader.style.padding = '0.5rem 1rem';
+                yearHeader.style.fontWeight = 'bold';
+                yearHeader.style.color = 'var(--color-primary)';
+                yearHeader.style.fontSize = '0.95rem';
+                yearHeader.style.backgroundColor = 'rgba(0,0,0,0.02)';
+                yearHeader.textContent = currentYear;
+                monthOptionsContainer.appendChild(yearHeader);
             }
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = data.monthName;
-            optGroup.appendChild(option);
+            const safeMonthId = key;
+            const optHTML = `
+                <div class="custom-select-option month-option-item" style="padding-left: 1.5rem;">
+                    <input type="checkbox" id="month-opt-${safeMonthId}" value="${key}" class="month-checkbox">
+                    <label for="month-opt-${safeMonthId}">${data.monthName}</label>
+                </div>
+            `;
+            monthOptionsContainer.insertAdjacentHTML('beforeend', optHTML);
         });
-        if (optGroup) filterMonth.appendChild(optGroup);
         
-        filterMonth.innerHTML += `<option value="Unknown Date">Unknown Date</option>`;
+        const unknownHTML = `
+            <div class="custom-select-option month-option-item">
+                <input type="checkbox" id="month-opt-unknown" value="Unknown Date" class="month-checkbox">
+                <label for="month-opt-unknown">Unknown Date</label>
+            </div>
+        `;
+        monthOptionsContainer.insertAdjacentHTML('beforeend', unknownHTML);
+        
+        setupMonthSelectLogic();
     }
 
     // Populate agent dropdown (Custom Multi-select)
@@ -221,7 +244,7 @@ function renderLeads(leads, dashboardContainer, allLeadsContainer) {
     }
     
     // Calculate and render Dashboard Stats
-    updateSalesOverview(leads, 'all', []);
+    updateSalesOverview(leads, [], []);
 
     // Render All Leads View
     if (allLeadsContainer) {
@@ -357,22 +380,22 @@ function createCardFromTemplate(template, lead) {
 }
 
 
-function updateSalesOverview(leads, selectedMonth, selectedAgents) {
+function updateSalesOverview(leads, selectedMonths, selectedAgents) {
     let filteredLeads = leads;
     
     // Filter by month
-    if (selectedMonth !== 'all') {
+    if (selectedMonths && selectedMonths.length > 0) {
         filteredLeads = filteredLeads.filter(lead => {
-            if (selectedMonth === 'Unknown Date') {
-                const d = new Date(lead.report_date);
-                return !lead.report_date || isNaN(d.getTime());
-            }
             const d = new Date(lead.report_date);
-            if (isNaN(d.getTime())) return false;
-            const year = d.getFullYear();
-            const month = d.getMonth() + 1;
-            const key = `${year}-${month.toString().padStart(2, '0')}`;
-            return key === selectedMonth;
+            let key;
+            if (!lead.report_date || lead.report_date === 'Unknown Date' || isNaN(d.getTime())) {
+                key = 'Unknown Date';
+            } else {
+                const year = d.getFullYear();
+                const month = d.getMonth() + 1;
+                key = `${year}-${month.toString().padStart(2, '0')}`;
+            }
+            return selectedMonths.includes(key);
         });
     }
 
@@ -428,14 +451,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterAgent = document.getElementById('filter-agent');
     const filterDate = document.getElementById('filter-date');
     
-    // Dashboard filters
-    const filterMonth = document.getElementById('filter-month');
-    
     // Custom select elements
     const agentSelectHeader = document.getElementById('agent-select-header');
     const agentSelectDropdown = document.getElementById('agent-select-dropdown');
     const agentSearchInput = document.getElementById('agent-search-input');
     const agentSelectText = document.getElementById('agent-select-text');
+    const monthSelectHeader = document.getElementById('month-select-header');
+    const monthSelectDropdown = document.getElementById('month-select-dropdown');
 
     function applyAllLeadsFilters() {
         const qFirstName = filterFirstName ? filterFirstName.value.toLowerCase().trim() : '';
@@ -465,23 +487,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function applyDashboardFilters() {
-        const qMonth = filterMonth ? filterMonth.value : 'all';
-        
+        // Gather checked months
+        const checkedMonthBoxes = document.querySelectorAll('.month-checkbox:checked');
+        let selectedMonths = [];
+        const allMonthsBox = document.getElementById('month-opt-all');
+        if (allMonthsBox && allMonthsBox.checked) {
+            selectedMonths = [];
+        } else {
+             checkedMonthBoxes.forEach(box => selectedMonths.push(box.value));
+        }
+
         // Gather checked agents
         const checkedAgentBoxes = document.querySelectorAll('.agent-checkbox:checked');
         let selectedAgents = [];
-        
         const allAgentsBox = document.getElementById('agent-opt-all');
         if (allAgentsBox && allAgentsBox.checked) {
-            // Leave array empty to signify "All", updateSalesOverview handles empty array as no filter
-            // Or we check the logic. The logic above says if selectedAgents.length > 0 it filters.
-            // So if 'all' is checked, we pass an empty array to NOT filter by agent.
             selectedAgents = [];
         } else {
              checkedAgentBoxes.forEach(box => selectedAgents.push(box.value));
         }
 
-        updateSalesOverview(allLeadsData, qMonth, selectedAgents);
+        updateSalesOverview(allLeadsData, selectedMonths, selectedAgents);
     }
 
     if(filterFirstName) filterFirstName.addEventListener('input', applyAllLeadsFilters);
@@ -489,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(filterAgent) filterAgent.addEventListener('input', applyAllLeadsFilters);
     if(filterDate) filterDate.addEventListener('input', applyAllLeadsFilters);
     
-    if(filterMonth) filterMonth.addEventListener('change', applyDashboardFilters);
+    document.addEventListener('filtersChanged', applyDashboardFilters);
     
 });
 
@@ -568,8 +594,7 @@ function setupCustomSelectLogic() {
                  e.target.checked = true;
             }
             updateLabelText();
-            // Need to trigger the filter function globally - simple hack: fire change event on month to trigger applyDashboardFilters
-            document.getElementById('filter-month').dispatchEvent(new Event('change'));
+            document.dispatchEvent(new CustomEvent('filtersChanged'));
         });
     }
 
@@ -584,8 +609,77 @@ function setupCustomSelectLogic() {
             }
             
             updateLabelText();
-            // Trigger global filter update
-            document.getElementById('filter-month').dispatchEvent(new Event('change'));
+            document.dispatchEvent(new CustomEvent('filtersChanged'));
+        });
+    });
+}
+
+function setupMonthSelectLogic() {
+    const header = document.getElementById('month-select-header');
+    const dropdown = document.getElementById('month-select-dropdown');
+    const allMonthsBox = document.getElementById('month-opt-all');
+    const monthCheckboxes = document.querySelectorAll('.month-checkbox');
+    const textLabel = document.getElementById('month-select-text');
+
+    // Toggle dropdown
+    if(header) {
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+        
+        newHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+    }
+
+    // Close on click outside (we can use the same generic document click handler set in setupCustomSelectLogic, but we add another check)
+    document.addEventListener('click', (e) => {
+        if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('.custom-select-wrapper')) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    function updateLabelText() {
+        if (allMonthsBox.checked) {
+            textLabel.textContent = "All Months";
+            return;
+        }
+
+        const checkedBoxes = Array.from(monthCheckboxes).filter(cb => cb.checked && cb.id !== 'month-opt-all');
+        
+        if (checkedBoxes.length === 0) {
+            textLabel.textContent = "Select Month(s)";
+        } else if (checkedBoxes.length === 1) {
+            textLabel.textContent = checkedBoxes[0].nextElementSibling.textContent;
+        } else {
+            textLabel.textContent = `${checkedBoxes.length} Months Selected`;
+        }
+    }
+
+    // Handle Checkbox interactions
+    if(allMonthsBox) {
+        allMonthsBox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                monthCheckboxes.forEach(cb => cb.checked = false);
+            } else if (!e.target.checked && Array.from(monthCheckboxes).filter(c=>c.checked).length === 0) {
+                 e.target.checked = true;
+            }
+            updateLabelText();
+            document.dispatchEvent(new CustomEvent('filtersChanged'));
+        });
+    }
+
+    monthCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            const anyChecked = Array.from(monthCheckboxes).some(c => c.checked);
+            if(anyChecked) {
+                allMonthsBox.checked = false;
+            } else {
+                allMonthsBox.checked = true;
+            }
+            
+            updateLabelText();
+            document.dispatchEvent(new CustomEvent('filtersChanged'));
         });
     });
 }
