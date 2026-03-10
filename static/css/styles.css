@@ -888,6 +888,33 @@ input:disabled {
 }
 
 @media (max-width: 600px) {
+    .sidebar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .brand-logo {
+        margin: 0 auto;
+    }
+
+    .nav-menu {
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .nav-item {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+        padding: 0.6rem 0.2rem;
+        font-size: 0.85rem;
+    }
+
+    .nav-item.action-btn svg {
+        display: none;
+    }
+    
     .all-leads-grid {
         grid-template-columns: 1fr;
     }
