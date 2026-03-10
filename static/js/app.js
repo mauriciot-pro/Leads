@@ -142,28 +142,51 @@ function renderLeads(leads, dashboardContainer, allLeadsContainer) {
     
     const rowTemplate = document.getElementById('lead-row-template');
 
-    // Extract unique months and agents
-    const uniqueMonths = new Set();
+    // Extract unique year-months and agents
+    const uniqueMonthsMap = new Map();
     const uniqueAgents = new Set();
     leads.forEach(lead => {
-        if(lead.report_date) {
-            uniqueMonths.add(lead.report_date);
+        if(lead.report_date && lead.report_date !== "Unknown Date") {
+            const d = new Date(lead.report_date);
+            if (!isNaN(d.getTime())) {
+                const year = d.getFullYear();
+                const month = d.getMonth() + 1;
+                const monthName = d.toLocaleString('default', { month: 'long' });
+                const key = `${year}-${month.toString().padStart(2, '0')}`;
+                if (!uniqueMonthsMap.has(key)) {
+                    uniqueMonthsMap.set(key, { year: year, monthName: monthName, key: key });
+                }
+            }
         }
         if(lead.reported_by) {
             uniqueAgents.add(lead.reported_by);
         }
     });
-    
+
     // Populate month dropdown
     const filterMonth = document.getElementById('filter-month');
     if (filterMonth) {
-        // Clear existing, keeping 'all'
         filterMonth.innerHTML = '<option value="all">All Months</option>';
-        [...uniqueMonths].sort().forEach(month => {
-            if(month && month !== "Unknown Date") {
-               filterMonth.innerHTML += `<option value="${month}">${month}</option>`;
+        
+        const sortedKeys = Array.from(uniqueMonthsMap.keys()).sort().reverse();
+        let currentYear = null;
+        let optGroup = null;
+        
+        sortedKeys.forEach(key => {
+            const data = uniqueMonthsMap.get(key);
+            if (data.year !== currentYear) {
+                if (optGroup) filterMonth.appendChild(optGroup);
+                currentYear = data.year;
+                optGroup = document.createElement('optgroup');
+                optGroup.label = currentYear;
             }
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = data.monthName;
+            optGroup.appendChild(option);
         });
+        if (optGroup) filterMonth.appendChild(optGroup);
+        
         filterMonth.innerHTML += `<option value="Unknown Date">Unknown Date</option>`;
     }
 
@@ -339,10 +362,17 @@ function updateSalesOverview(leads, selectedMonth, selectedAgents) {
     
     // Filter by month
     if (selectedMonth !== 'all') {
-        const queryMonth = selectedMonth.toLowerCase();
         filteredLeads = filteredLeads.filter(lead => {
-            const leadDate = (lead.report_date || '').toLowerCase();
-            return leadDate === queryMonth;
+            if (selectedMonth === 'Unknown Date') {
+                const d = new Date(lead.report_date);
+                return !lead.report_date || isNaN(d.getTime());
+            }
+            const d = new Date(lead.report_date);
+            if (isNaN(d.getTime())) return false;
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            const key = `${year}-${month.toString().padStart(2, '0')}`;
+            return key === selectedMonth;
         });
     }
 
