@@ -40,8 +40,12 @@
 
             <nav class="nav-menu">
                 <button class="nav-item active" data-view="dashboard">Overview</button>
-                <button class="nav-item" data-view="all-leads">
+                <button class="nav-item" data-view="all-leads" id="nav-all-leads">
                     All Leads
+                    <svg class="lock-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
                 </button>
                 <button class="nav-item action-btn" data-view="new-lead">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -312,7 +316,35 @@
     </template>
 
 
-    <script src="/static/js/app.js?v=4"></script>
+    <!-- Password Gate Modal for All Leads -->
+    <div id="password-modal" class="password-modal-overlay hidden">
+        <div class="password-modal-box glass-panel">
+            <div class="password-modal-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <h2 class="password-modal-title">Director Access Required</h2>
+            <p class="password-modal-subtitle">The All Leads directory is restricted to the Sales Director. Please enter your access code to continue.</p>
+            <div class="password-input-wrapper">
+                <input type="password" id="password-input" class="password-input" placeholder="Enter access code..." autocomplete="off" maxlength="20">
+                <button id="password-toggle" class="password-toggle-btn" type="button" aria-label="Toggle visibility">
+                    <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+            <p id="password-error" class="password-error hidden">Incorrect access code. Please try again.</p>
+            <div class="password-modal-actions">
+                <button id="password-cancel" class="password-cancel-btn">Cancel</button>
+                <button id="password-submit" class="password-submit-btn">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v=5"></script>
 </body>
 
 </html>

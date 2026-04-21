@@ -12,28 +12,109 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastMsg = document.getElementById('toast-message');
     const toastClose = document.getElementById('toast-close');
 
+    // ── Password Gate ────────────────────────────────────────────
+    const CORRECT_PASSWORD = 'MRG333';
+    let allLeadsAuthenticated = false;  // session-scoped; resets on page reload
+
+    const passwordModal   = document.getElementById('password-modal');
+    const passwordInput   = document.getElementById('password-input');
+    const passwordError   = document.getElementById('password-error');
+    const passwordSubmit  = document.getElementById('password-submit');
+    const passwordCancel  = document.getElementById('password-cancel');
+    const passwordToggle  = document.getElementById('password-toggle');
+    const eyeIcon         = document.getElementById('eye-icon');
+
+    // Toggle show/hide password
+    if (passwordToggle) {
+        passwordToggle.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            eyeIcon.innerHTML = isPassword
+                ? '<line x1="1" y1="1" x2="23" y2="23"></line><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>'
+                : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+        });
+    }
+
+    function openPasswordModal() {
+        passwordInput.value = '';
+        passwordError.classList.add('hidden');
+        passwordInput.classList.remove('shake');
+        passwordModal.classList.remove('hidden');
+        setTimeout(() => passwordInput.focus(), 80);
+    }
+
+    function closePasswordModal() {
+        passwordModal.classList.add('hidden');
+        passwordInput.value = '';
+        passwordError.classList.add('hidden');
+    }
+
+    function attemptUnlock() {
+        const entered = passwordInput.value;  // case-sensitive: do NOT trim
+        if (entered === CORRECT_PASSWORD) {
+            allLeadsAuthenticated = true;
+            closePasswordModal();
+            navigateToView('all-leads');
+        } else {
+            passwordError.classList.remove('hidden');
+            passwordInput.classList.remove('shake');
+            // Force reflow to restart animation
+            void passwordInput.offsetWidth;
+            passwordInput.classList.add('shake');
+            passwordInput.select();
+        }
+    }
+
+    if (passwordSubmit) passwordSubmit.addEventListener('click', attemptUnlock);
+    if (passwordCancel) passwordCancel.addEventListener('click', closePasswordModal);
+
+    // Allow Enter key to submit
+    if (passwordInput) {
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptUnlock();
+            if (e.key === 'Escape') closePasswordModal();
+        });
+    }
+
+    // Close on backdrop click
+    if (passwordModal) {
+        passwordModal.addEventListener('click', (e) => {
+            if (e.target === passwordModal) closePasswordModal();
+        });
+    }
+
+    // ── Navigation helper ────────────────────────────────────────
+    function navigateToView(viewId) {
+        navItems.forEach(nav => nav.classList.remove('active'));
+        const targetNav = document.querySelector(`[data-view="${viewId}"]`);
+        if (targetNav) targetNav.classList.add('active');
+
+        viewSections.forEach(section => {
+            section.classList.add('hidden');
+            section.classList.remove('active');
+        });
+
+        const activeView = document.getElementById(`view-${viewId}`);
+        if (activeView) {
+            activeView.classList.remove('hidden');
+            setTimeout(() => activeView.classList.add('active'), 10);
+        }
+
+        if (viewId === 'dashboard') fetchLeads();
+    }
+
     // Navigation Logic
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
-            // Update active state on nav
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-
-            // Show corresponding view
             const viewId = item.getAttribute('data-view');
-            viewSections.forEach(section => {
-                section.classList.add('hidden');
-                section.classList.remove('active');
-            });
 
-            const activeView = document.getElementById(`view-${viewId}`);
-            activeView.classList.remove('hidden');
-            // Small timeout to allow display:block to apply before animating opacity
-            setTimeout(() => activeView.classList.add('active'), 10);
-
-            if (viewId === 'dashboard') {
-                fetchLeads();
+            // Guard the All Leads view with a password
+            if (viewId === 'all-leads' && !allLeadsAuthenticated) {
+                openPasswordModal();
+                return;  // Do not navigate yet
             }
+
+            navigateToView(viewId);
         });
     });
 

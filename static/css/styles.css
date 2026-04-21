@@ -952,3 +952,191 @@ select.status-badge.status-sold {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===================== Password Gate Modal ===================== */
+.password-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInOverlay 0.2s ease;
+}
+
+.password-modal-overlay.hidden {
+    display: none;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.password-modal-box {
+    width: 100%;
+    max-width: 420px;
+    margin: 1rem;
+    padding: 2.5rem 2rem 2rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    animation: slideUpModal 0.25s ease;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 54, 58, 0.15);
+}
+
+@keyframes slideUpModal {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.password-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(0, 54, 58, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    margin-bottom: 0.25rem;
+}
+
+.password-modal-title {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-align: center;
+}
+
+.password-modal-subtitle {
+    font-size: 0.88rem;
+    color: var(--color-secondary);
+    text-align: center;
+    line-height: 1.5;
+    max-width: 320px;
+}
+
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input {
+    width: 100%;
+    padding: 0.75rem 2.8rem 0.75rem 1rem;
+    border: 1.5px solid rgba(0, 54, 58, 0.2);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-dark);
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.1em;
+}
+
+.password-input:focus {
+    border-color: var(--color-primary);
+}
+
+.password-input.shake {
+    animation: shake 0.4s ease;
+    border-color: var(--status-nointeresado);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-8px); }
+    40%       { transform: translateX(8px); }
+    60%       { transform: translateX(-6px); }
+    80%       { transform: translateX(6px); }
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-secondary);
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle-btn:hover {
+    color: var(--color-primary);
+}
+
+.password-error {
+    font-size: 0.82rem;
+    color: var(--status-nointeresado);
+    text-align: center;
+    margin-top: -0.25rem;
+}
+
+.password-error.hidden {
+    display: none;
+}
+
+.password-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.password-cancel-btn {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid rgba(0, 54, 58, 0.2);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-secondary);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.password-cancel-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.password-submit-btn {
+    flex: 2;
+    padding: 0.7rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.03em;
+}
+
+.password-submit-btn:hover {
+    background: var(--color-primary-light);
+}
+
+/* Lock icon on the All Leads nav item */
+.nav-item .lock-icon {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 6px;
+    opacity: 0.6;
+}
